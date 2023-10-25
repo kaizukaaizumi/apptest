@@ -1,12 +1,12 @@
 import React, { useRef, useEffect } from "react";
 import L from "leaflet";
-import "leaflet/dist/leaflet.css"
+import "leaflet/dist/leaflet.css";
 
 const LeafletMap: React.FC = () => {
     const mapRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        const initializeMap = async () => {
+        const initializeMap = () => {
             try {
                 if (mapRef.current) {
                     const map = L.map(mapRef.current).setView([21.306944, -157.858337], 13);
