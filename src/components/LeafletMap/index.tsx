@@ -9,7 +9,7 @@ const LeafletMap: React.FC = () => {
         const initializeMap = async () => {
             try {
                 if (mapRef.current) {
-                    let map = L.map(mapRef.current).setView([21.306944, -157.858337], 13);
+                    const map = L.map(mapRef.current).setView([21.306944, -157.858337], 13);
                     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
                         attribution:
                             'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors',
