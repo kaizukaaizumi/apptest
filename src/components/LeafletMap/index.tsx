@@ -1,6 +1,17 @@
 import React, { useRef, useEffect } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
+import markerIcon from 'leaflet/dist/images/marker-icon.png';
+import markerShadow from 'leaflet/dist/images/marker-shadow.png';
+import geoJsonData from './geoJSON.json'
+
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+    iconUrl: markerIcon.src,
+    iconRetinaUrl: markerIcon2x.src,
+    shadowUrl: markerShadow.src,
+})
 
 const LeafletMap: React.FC = () => {
     const mapRef = useRef<HTMLDivElement>(null);
@@ -15,31 +26,46 @@ const LeafletMap: React.FC = () => {
                             'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors',
                         maxZoom: 18,
                     }).addTo(map);
-                    const marker = L.marker([21.306944, -157.858337]).addTo(map);
-                    const circle = L.circle([21.306944, -157.858337], {
-                        color: 'red',
-                        fillColor: '#f03',
-                        fillOpacity: 0.5,
-                        radius: 500
-                    }).addTo(map);
-                    const polygon = L.polygon([
-                        [21.306944, -157.858337],
-                        [21.4, -157.7],
-                        [21.5, -157.9]
-                    ]).addTo(map);
-                    marker.bindPopup("<b>Hello world!</b><br>I am a popup.").openPopup();
-                    circle.bindPopup("I am a circle.");
-                    polygon.bindPopup("I am a polygon.");
-                    const popup = L.popup();
-
                     function onMapClick(e) {
-                        popup
-                            .setLatLng(e.latlng)
-                            .setContent("You clicked the map at " + e.latlng.toString())
-                            .openOn(map);
+                        L.marker(e.latlng, {riseOnHover: true}).addTo(map).bindPopup(L.popup().setLatLng(e.latlng).setContent(e.latlng.toString() + '<br><a href="http://www.google.com">Google<a/>'));
+                    }
+                    map.locate({ setView: true, maxZoom: 16 });
+                    map.on('click', onMapClick);
+                    function onLocationFound(e) {
+                        var radius = parseInt(e.accuracy);
+
+                        L.marker(e.latlng).addTo(map)
+                            .bindPopup("You are within " + radius + " meters from this point").openPopup();
+
+                        L.circle(e.latlng, radius).addTo(map);
                     }
 
-                    map.on('click', onMapClick);
+                    map.on('locationfound', onLocationFound);
+                    function onLocationError(e) {
+                        alert(e.message);
+                    }
+
+                    map.on('locationerror', onLocationError);
+
+                    // GeoJSON - FILE
+                    const geoJSONLayer = L.geoJSON(geoJsonData, {
+                        coordsToLatLng: function (coords) {
+                            return new L.LatLng(coords[1], coords[0], coords[2]);
+                        }
+                    });
+                    geoJSONLayer.addTo(map);
+
+                    // GeoJSON - URL
+                    // fetch('geojson_url')
+                    //     .then(response => response.json())
+                    //     .then(data => {
+                    //         const geoJSONLayer = L.geoJSON(data);
+                    //         geoJSONLayer.addTo(map);
+                    //     })
+                    //     .catch(error => {
+                    //         console.error('Error fetching GeoJSON data:', error)
+                    //     })
+                    
                 }
             } catch (error) {
                 console.log("Error initializing map:", error);
@@ -49,7 +75,7 @@ const LeafletMap: React.FC = () => {
         initializeMap();
     }, []);
 
-    return <div ref={mapRef} style={{ height: "800px" }}></div>;
+    return <div ref={mapRef} style={{ height: "800px", width: "1200px" }}></div>;
 };
 
 export default LeafletMap;
